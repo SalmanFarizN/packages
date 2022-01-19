@@ -1,6 +1,7 @@
 import numpy as np
 from numba import jit,objmode
 import cmath
+from md import pbc 
 
 
 
@@ -17,12 +18,7 @@ def coord_number(nparticles,ndims,sigma,length,hlength,pos1):
         for j in range(nparticles):
             
             if (i!=j):
-                for k in range(ndims):
-                    r[k]=pos1[i,k]-pos1[j,k]
-                    if r[k] > hlength:
-                        r[k]=r[k]-length
-                    if r[k] <= -hlength:
-                        r[k]=r[k]+length
+                rnorm,r=pbc.dist_mic(ndims,pos1[i,:],pos1[j,:],length,hlength)
                 
             
                 rnorm = 0
@@ -113,19 +109,7 @@ def cl_sizes(nparticles,ndims,sigma,length,hlength,pos1):
                 if (i!=p):
 
                     #Compute distance
-                    for l in range(ndims):
-                        r[l]=pos1[i,l]-pos1[p,l]
-                        if r[l] > hlength:
-                            r[l]=r[l]-length
-                        if r[l] <= -hlength:
-                            r[l]=r[l]+length
-                
-            
-                    rnorm = 0
-                    for l in range(ndims):
-                        rnorm = rnorm+r[l]**2
-            
-                    rnorm = np.sqrt(rnorm)
+                    rnorm,r=pbc.dist_mic(ndims,pos1[i,:],pos1[p,:],length,hlength)
 
                     #If they are closer 
                     if (rnorm<1.15*sigma):
