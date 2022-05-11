@@ -49,7 +49,7 @@ def abop(nparticles,ndims,n,r_list,nc):
     #x=np.array([[0,0]])
     for i in range(nparticles):
         
-        if (nc[i]>1):
+        if (nc[i]>2):
             phi[i]=0
             cex=0
             for j in range(nc[i]):
