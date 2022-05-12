@@ -21,12 +21,6 @@ def coord_number(nparticles,ndims,sigma,length,hlength,pos1):
                 rnorm,r=pbc.dist_mic(ndims,pos1[i,:],pos1[j,:],length,hlength)
                 
             
-                rnorm = 0
-                for el in range(ndims):
-                    rnorm = rnorm+r[el]**2
-            
-                rnorm = np.sqrt(rnorm)
-                
                 if (rnorm<1.15*sigma):
                     n_neigh[i]=n_neigh[i]+1
                     neigh_list[i,n_neigh[i]]=j
@@ -49,7 +43,7 @@ def abop(nparticles,ndims,n,r_list,nc):
     #x=np.array([[0,0]])
     for i in range(nparticles):
         
-        if (nc[i]>2):
+        if (nc[i]>=2):
             phi[i]=0
             cex=0
             for j in range(nc[i]):
