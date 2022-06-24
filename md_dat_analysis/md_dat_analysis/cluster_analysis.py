@@ -79,7 +79,7 @@ def abop(nparticles,ndims,n,r_list,nc):
 #Cluster sizes and lists
 @jit(nopython = True)
 def cl_sizes(nparticles,ndims,sigma,length,hlength,pos1):
-    clusters=np.zeros((nparticles,nparticles),dtype = np.int32)
+    clusters=np.zeros((nparticles,nparticles+1),dtype = np.int32)   #Second dimension nparticles+1 to account for the first element being used to keep copunt of the no. of particles in each cluster
     clusters[:,:]=-1
     clusters[:,0]=1                   #Size of each cluster
     clusters[:,1]=np.arange(0,1800,1) #First particle in each cluster (1800 clusters initially, each containing 1) 
