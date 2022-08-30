@@ -14,7 +14,6 @@ def wallhit(nparticles,ndims,pos,length):
     return(pos)
 
 
-lk
 
 
 # Wall hit check with unfolding trackers 
@@ -56,3 +55,18 @@ def dist_mic(ndims,pos1,pos2,length,hlength):
     rnorm = np.sqrt(rnorm)
     
     return(rnorm,r)
+
+
+# 
+@jit(nopython=True)
+def box_nlist_refresh_PBC(r,N,rho,r_m,nboxes,boxlength,tracker,ndim):
+    nlist=np.full((nboxes,nboxes,int(N/(rho*nboxes))), N+1, dtype=np.intc)
+    count = np.zeros((nboxes,nboxes), dtype=np.intc)
+    boxNr = np.zeros((N,ndim), dtype=np.intc)
+    for i in range(N):
+        for s in range(ndim):
+            r,tracker=PBC2(i,s,r,boxlength,tracker)
+            boxNr[i,s] = r[i,s]/r_m
+        nlist[boxNr[i,0],boxNr[i,1],count[boxNr[i,0],boxNr[i,1]]] = i
+        count[boxNr[i,0],boxNr[i,1]] += 1
+    return (r,tracker,nlist,boxNr,count)
