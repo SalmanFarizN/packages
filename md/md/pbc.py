@@ -14,7 +14,7 @@ def wallhit(nparticles,ndims,pos,length):
     return(pos)
 
 
-
+lk
 
 
 # Wall hit check with unfolding trackers 
