@@ -2,7 +2,7 @@ import numpy as np
 from numba import jit,objmode
 from md import pbc
 
-# Yukawa
+# Yukawa Potential (as described in Koegler paper)
 @jit(nopython=True)
 def potential_yu(nparticles,ndims,pos,e_pos,m_pos,pbc_params,kappa,lj_params):
     r_e=np.zeros((ndims),dtype=np.float64)
@@ -37,6 +37,10 @@ def potential_yu(nparticles,ndims,pos,e_pos,m_pos,pbc_params,kappa,lj_params):
     return(potentialfin)
 
 
+
+
+
+#Forces due to Yukawa potential (as described in Koegler paper)
 @jit(nopython=True)
 def yu_force(pos,shape_params,e_pos,m_pos,pbc_params,nc,nclist,yu_params,lj_params):
     r_e=np.zeros((shape_params[1]),dtype=np.float64)
@@ -85,7 +89,7 @@ def yu_force(pos,shape_params,e_pos,m_pos,pbc_params,nc,nclist,yu_params,lj_para
     return(total_f)
 
 
-#Function to compute position of charges inside particles
+#Function to compute position of charges inside particles YUkawa only (as described in Koegler paper)
 @jit(nopython=True)
 def qpos(nparticles,ndims,pos,delr):
     e_pos=np.zeros((nparticles,2,ndims),dtype=np.float64)
@@ -113,7 +117,10 @@ def qpos(nparticles,ndims,pos,delr):
     return(e_pos,m_pos)
     
 
-# LJ
+
+
+
+#Forces due to Lennard-Jones potential
 @jit(nopython=True)
 def lj_force(pos,lj_params,shape_params,pbc_params,nc,nclist):
 
