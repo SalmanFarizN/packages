@@ -16,7 +16,6 @@ def wallhit(nparticles,ndims,pos,length):
 
 
 
-
 # Wall hit check with unfolding trackers 
 # : Entire snapshot array passed in check if any particle is touching the boundary
 @jit(nopython=True)
@@ -56,3 +55,4 @@ def dist_mic(ndims,pos1,pos2,length,hlength):
     rnorm = np.sqrt(rnorm)
     
     return(rnorm,r)
+
