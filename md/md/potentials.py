@@ -95,27 +95,93 @@ def qpos(nparticles,ndims,pos,delr):
     e_pos=np.zeros((nparticles,2,ndims),dtype=np.float64)
     m_pos=np.zeros((nparticles,2,ndims),dtype=np.float64)
     
-    for i in range(nparticles):
-        for j in range(2):
-            for k in range(ndims):
-                if (k==0):      #x axis                     
-                    m_pos[i,j,k]=pos[i,k]
+    
+    direction_e=np.zeros((nparticles,ndims),dtype=np.float64)
+    direction_m=np.zeros((nparticles,ndims),dtype=np.float64)
+    
+    #2d unit vector Along y axis
+    direction_e[:,0]=0     #np.cos(np.pi/2)
+    direction_e[:,1]=1     #np.sin(np.pi/2)
+    
+    #2d unit vector Along x-axis
+    direction_m[:,0]=1     #np.cos(0)
+    direction_m[:,1]=0     #np.sin(0)
+    
+    
+    
+    # e charge
+    #+ve charge
+    e_pos[:,0,:]=pos[:,:]+delr*direction_e[:,:]
+    #-ve charge
+    e_pos[:,1,:]=pos[:,:]-delr*direction_e[:,:]
+    
+    
+    # m charge
+    #+ve charge
+    m_pos[:,0,:]=pos[:,:]+delr*direction_m[:,:]
+    #-ve charge
+    m_pos[:,1,:]=pos[:,:]-delr*direction_m[:,:]
+    
+    # for i in range(nparticles):
+    #     for j in range(2):
+    #         for k in range(ndims):
+    #             if (k==0):      #x axis                     
+    #                 m_pos[i,j,k]=pos[i,k]
                     
-                    if (j==0):  # +ve charge 
-                        e_pos[i,j,k]=pos[i,k]+delr
-                    if (j==1):  # -ve charge 
-                        e_pos[i,j,k]=pos[i,k]-delr
+    #                 if (j==0):  # +ve charge 
+    #                     e_pos[i,j,k]=pos[i,k]+delr
+    #                 if (j==1):  # -ve charge 
+    #                     e_pos[i,j,k]=pos[i,k]-delr
                         
-                if (k==1):       #y axis
-                    e_pos[i,j,k]=pos[i,k]
+    #             if (k==1):       #y axis
+    #                 e_pos[i,j,k]=pos[i,k]
                     
-                    if (j==0):   #+ve charge
-                        m_pos[i,j,k]=pos[i,k]+delr
-                    if (j==1):   #-ve charge
-                        m_pos[i,j,k]=pos[i,k]-delr
+    #                 if (j==0):   #+ve charge
+    #                     m_pos[i,j,k]=pos[i,k]+delr
+    #                 if (j==1):   #-ve charge
+    #                     m_pos[i,j,k]=pos[i,k]-delr
 
     return(e_pos,m_pos)
     
+
+
+
+
+#Function to compute position of charges inside active particles YUkawa only (as described in Koegler paper)
+#Aligning e-field charges along direction of propulsion and m- field ones as required
+@jit(nopython=True)
+def qpos_active(nparticles,ndims,pos,delr,theta):
+    e_pos=np.zeros((nparticles,2,ndims),dtype=np.float64)
+    m_pos=np.zeros((nparticles,2,ndims),dtype=np.float64)
+    
+    direction_e=np.zeros((nparticles,ndims),dtype=np.float64)
+    direction_m=np.zeros((nparticles,ndims),dtype=np.float64)
+    
+    direction_e[:,0]=np.cos(theta)
+    direction_e[:,1]=np.sin(theta)
+    
+    direction_m[:,0]=np.cos(theta+np.pi/2)
+    direction_m[:,1]=np.sin(theta+np.pi/2)
+    
+    
+    
+    # e charge
+    #+ve charge
+    e_pos[:,0,:]=pos[:,:]+delr*direction_e[:,:]
+    #-ve charge
+    e_pos[:,1,:]=pos[:,:]-delr*direction_e[:,:]
+    
+    
+    # m charge
+    #+ve charge
+    m_pos[:,0,:]=pos[:,:]+delr*direction_m[:,:]
+    #-ve charge
+    m_pos[:,1,:]=pos[:,:]-delr*direction_m[:,:]
+    
+    return(e_pos,m_pos)
+    
+
+
 
 
 
