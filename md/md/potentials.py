@@ -1,5 +1,5 @@
 import numpy as np
-from numba import jit,objmode
+from numba import jit,prange
 from md import pbc
 
 # Yukawa Potential (as described in Koegler paper)
@@ -186,7 +186,7 @@ def qpos_active(nparticles,ndims,pos,delr,theta):
 
 
 
-#Forces due to Lennard-Jones potential
+#Forces due to Lennard-Jones potential (optimized for single core)
 @jit(nopython=True)
 def lj_force(pos,lj_params,shape_params,pbc_params,nc,nclist):
 
@@ -211,5 +211,36 @@ def lj_force(pos,lj_params,shape_params,pbc_params,nc,nclist):
                 for k in range(shape_params[1]):
                     force[i,k]=force[i,k]+(r[k]/rnorm)*f
                     force[p,k]=force[p,k]-(r[k]/rnorm)*f
+
+    return(force)
+
+
+
+
+
+#Forces due to Lennard-Jones potential (optimized for multiple core)
+@jit(nopython=True,parallel=True)
+def lj_force_p(pos,lj_params,shape_params,pbc_params,nc,nclist):
+
+    force=np.zeros((shape_params[0],shape_params[1]),dtype=np.float64)     #Force matrix nparticles x ndims
+    r=np.zeros((shape_params[1]),dtype=np.float64)                         #r to hold the distance between particle paris as a vector
+
+
+    
+    #Loop running over all neighbours (neighbours here contain all neighbours)
+    for i in prange(shape_params[0]):
+        for j in range(1,nc[i]+1):
+            p=nclist[i,j]
+            
+            
+            #Minimum image criteria distance computation
+            rnorm,r = pbc.dist_mic(shape_params[1],pos[i,:],pos[p,:],pbc_params[0],pbc_params[1])
+            
+            if rnorm<lj_params[2]:
+                part=(lj_params[1]/rnorm)**6
+                f=(-24.0*lj_params[0]/rnorm)*(2*part**2-part)
+         
+                for k in range(shape_params[1]):
+                    force[i,k]=force[i,k]+(r[k]/rnorm)*f
 
     return(force)
