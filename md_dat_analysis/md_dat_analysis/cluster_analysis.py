@@ -5,7 +5,7 @@ from md import pbc
 
 
 
-#Coordination Number
+#Coordination Number of a single frame
 @jit(nopython=True)
 def coord_number(nparticles,ndims,sigma,length,hlength,pos1):
     n_neigh = np.zeros((nparticles),dtype=np.intc)
@@ -33,7 +33,7 @@ def coord_number(nparticles,ndims,sigma,length,hlength,pos1):
     return(z_mean,n_neigh,neigh_list,r_list)
 
 
-#Angular Bond Order parameter
+#Angular Bond Order parameter of order n of each particle of a frame and the mean
 @jit(nopython=True)
 def abop(nparticles,ndims,n,r_list,nc):
     phi_avg=0
@@ -82,7 +82,7 @@ def cl_sizes(nparticles,ndims,sigma,length,hlength,pos1):
     clusters=np.zeros((nparticles,nparticles+1),dtype = np.int32)   #Second dimension nparticles+1 to account for the first element being used to keep copunt of the no. of particles in each cluster
     clusters[:,:]=-1
     clusters[:,0]=1                   #Size of each cluster
-    clusters[:,1]=np.arange(0,1800,1) #First particle in each cluster (1800 clusters initially, each containing 1) 
+    clusters[:,1]=np.arange(0,nparticles,1) #First particle in each cluster (nparticles no. of clusters initially, each containing 1) 
     r=np.zeros((ndims),dtype=np.float64)
 
 
