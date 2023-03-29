@@ -37,9 +37,8 @@ def posini(shape_params,pbc_params,diam):
 def posini_uniform(shape_params,pbc_params,diam):
     pos1=np.zeros((shape_params[0],shape_params[1]),dtype=np.float64)
     dist = math.floor((pbc_params[0]/np.sqrt(shape_params[0]))*10)/10
-    #dist=diam
     particle_number=0
-    print('dist ist' , dist)
+   
     for i in range(1,math.ceil(np.sqrt(shape_params[0]))+1):
         for j in range(1,math.ceil(np.sqrt(shape_params[0]))+1):
             if particle_number < shape_params[0]:
