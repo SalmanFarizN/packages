@@ -13,7 +13,7 @@ def neighbourlist(pos,rs,shape_params,pbc_params,maxnbrs):
     
     #Loop running over all particle pairs
     for i in range(shape_params[0]):
-        for j in range(i+1,shape_params[0]):
+        for j in range(i+1,shape_params[0]):           #Avoid repeatitions in list; for eg: if 0 has 38 in nlist, 38 will not have 0 in its own nlist
             
             
             #Minimum image criteria distance computation
