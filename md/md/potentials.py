@@ -249,6 +249,7 @@ def lj_force_p(pos,lj_params,shape_params,pbc_params,nc,nclist):
          
                 for k in range(shape_params[1]):
                     force[i,k]=force[i,k]+(r[k]/rnorm)*f
+                    force[p,k]=force[p,k]-(r[k]/rnorm)*f
 
     return(force)
 
@@ -278,7 +279,7 @@ def janus_repulsive(lj_params, rnorm):
     U_rep = 4*lj_params[0]*(lj_params[1]/rnorm)**12
     # repulsive force
     F_rep = 12*U_rep*(-1/rnorm)
-    return F_rep, U_rep
+    return U_rep,F_rep
 
 
 
@@ -300,7 +301,7 @@ def janus_angular(direction, patch_params, r, rnorm, particle_type):
     cos_theta = np.dot(r_ip, direction)
     abs_theta = np.arccos(cos_theta)
 
-    # checking for farticle type; if 'double' and angle bigger than 90° the opposite patch is nearer
+    # checking for particle type; if 'double' and angle bigger than 90° the opposite patch is nearer
     if particle_type == 'double':
         if abs_theta > (np.pi)/2:
             abs_theta = np.abs(abs_theta-np.pi)
@@ -356,19 +357,21 @@ def single_patch_force(pos, direction, lj_params, shape_params, pbc_params, patc
                 phi_i, torque_i, sign_i, direction_i, nabla_phi_i_n, nabla_phi_i_r = janus_angular(direction[i], patch_params, (-1)*r, rnorm, particle_type='single')
                 phi_p, torque_p, sign_p, direction_p, nabla_phi_p_n, nabla_phi_p_r = janus_angular(direction[p], patch_params, r, rnorm, particle_type='single')
 
-                F_rep, _ = janus_repulsive(lj_params, rnorm)
+                U_rep,F_rep = janus_repulsive(lj_params, rnorm)
 
                 U_att, F_att = janus_attractive(lj_params, patch_params, rnorm)
 
-                F_r = F_rep + F_att*phi_i*phi_p + U_att*(phi_p*nabla_phi_i_r + phi_i*nabla_phi_p_r)
-                F_n = U_att*(phi_p*nabla_phi_i_n*direction_i + phi_i*nabla_phi_p_n*direction_p)
+                F_r = F_rep + F_att*phi_i*phi_p+ U_att*(phi_p*nabla_phi_i_r + phi_i*nabla_phi_p_r)
+                F_n = U_att*(phi_p*-1*nabla_phi_i_n*direction_i + phi_i*nabla_phi_p_n*direction_p)
 
                 torque[i] += U_att*sign_i*torque_i*phi_p
                 torque[p] += U_att*sign_p*torque_p*phi_i
                 
                 for k in range(shape_params[1]):
-                    force[i,k] += F_n[k] + (r[k]/rnorm)*F_r 
-                    force[p,k] -= F_n[k] + (r[k]/rnorm)*F_r 
+                    force[i,k] += (F_n[k] + (r[k]/rnorm)*F_r) 
+                    #force[i,k] += ( (r[k]/rnorm)*F_r) 
+                    force[p,k] -= (F_n[k] + (r[k]/rnorm)*F_r) 
+                    #force[p,k] -= ((r[k]/rnorm)*F_r) 
 
     return(force, torque)
 
@@ -402,12 +405,12 @@ def double_patch_force(pos, direction, lj_params, shape_params, pbc_params, patc
                 phi_i, torque_i, sign_i, direction_i, nabla_phi_i_n, nabla_phi_i_r = janus_angular(direction[i], patch_params, (-1)*r, rnorm, particle_type='double')
                 phi_p, torque_p, sign_p, direction_p, nabla_phi_p_n, nabla_phi_p_r = janus_angular(direction[p], patch_params, r, rnorm, particle_type='double')
 
-                F_rep, _ = janus_repulsive(lj_params, rnorm)
+                U_rep,F_rep = janus_repulsive(lj_params, rnorm)
 
                 U_att, F_att = janus_attractive(lj_params, patch_params, rnorm)
 
                 F_r = F_rep + F_att*phi_i*phi_p + U_att*(phi_p*nabla_phi_i_r + phi_i*nabla_phi_p_r)
-                F_n = U_att*(phi_p*nabla_phi_i_n*direction_i + phi_i*nabla_phi_p_n*direction_p)
+                F_n = U_att*(phi_p*-1*nabla_phi_i_n*direction_i + phi_i*nabla_phi_p_n*direction_p)
 
                 torque[i] += U_att*sign_i*torque_i*phi_p
                 torque[p] += U_att*sign_p*torque_p*phi_i
