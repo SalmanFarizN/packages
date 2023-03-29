@@ -181,3 +181,155 @@ def ovito2d_abop(pos,path,filename,nparticles,ndims,sigma,length,hlength):
                 file.write('1 {} {} {} {}\n'.format(pos[j,0],pos[j,1],phi4[j],phi6[j]))
                 
     file.close()
+    
+    
+    
+#Create .xyz OVITO files for single patch Janus particles 
+def janus_single(pos,path,filename,nparticles,ndims,sigma,length,hlength,direction):
+    os.chdir(path)
+    file = open(filename,'w')
+    
+    #2D array: Only a single frame
+    if (len(pos.shape)==2):
+        file.write('{}\n'.format(2*pos.shape[0]))
+        file.write('Lattice="{} 0.0 0.0 0.0 {} 0.0 0.0 0.0 {}"\n'.format(length,length,length))
+        
+        for i in range(pos.shape[0]):
+            file.write('1 {} {}\n'.format(pos[i,0],pos[i,1]))
+            file.write('2 {} {}\n'.format(pos[i, 0]+0.25*direction[i, 0], pos[i, 1]+0.25*direction[i, 1]))
+            
+            
+    #3D array: trajectory
+    if (len(pos.shape)==3):
+        for i in range(0,pos.shape[2]-100,100):
+            file.write('{}\n'.format(2*pos.shape[0]))
+            file.write('Lattice="{} 0.0 0.0 0.0 {} 0.0 0.0 0.0 {}"\n'.format(length,length,length))
+            
+            for j in range(pos.shape[0]):
+                file.write('1 {} {}\n'.format(pos[j,0,i],pos[j,1,i]))
+                file.write('2 {} {}\n'.format(pos[j,0,i]+0.15*direction[j,0,i], pos[j,1,i]+0.15*direction[j,1,i]))
+                
+                
+    file.close()
+    
+    
+    
+    
+    
+#Create .xyz OVITO files for double patch Janus particles 
+def janus_double(pos,path,filename,nparticles,ndims,sigma,length,hlength,direction):
+    os.chdir(path)
+    file = open(filename,'w')
+    
+    #2D array: Only a single frame
+    if (len(pos.shape)==2):
+        file.write('{}\n'.format(3*pos.shape[0]))
+        file.write('Lattice="{} 0.0 0.0 0.0 {} 0.0 0.0 0.0 {}"\n'.format(length,length,length))
+        
+        for i in range(pos.shape[0]):
+            file.write('1 {} {}\n'.format(pos[i,0],pos[i,1]))
+            file.write('2 {} {}\n'.format(pos[i, 0]+0.15*direction[i, 0], pos[i, 1]+0.15*direction[i, 1]))
+            file.write('2 {} {}\n'.format(pos[i, 0]-0.15*direction[i, 0], pos[i, 1]-0.15*direction[i, 1]))
+            
+            
+    #3D array: trajectory
+    if (len(pos.shape)==3):
+        for i in range(0,pos.shape[2]-100,100):
+            file.write('{}\n'.format(3*pos.shape[0]))
+            file.write('Lattice="{} 0.0 0.0 0.0 {} 0.0 0.0 0.0 {}"\n'.format(length,length,length))
+            
+            for j in range(pos.shape[0]):
+                file.write('1 {} {}\n'.format(pos[j,0,i],pos[j,1,i]))
+                file.write('2 {} {}\n'.format(pos[j,0,i]+0.15*direction[j,0,i], pos[j,1,i]+0.15*direction[j,1,i]))
+                file.write('2 {} {}\n'.format(pos[j,0,i]-0.15*direction[j,0,i], pos[j,1,i]-0.15*direction[j,1,i]))
+                
+                
+    file.close()
+    
+    
+
+
+
+
+
+#Function to visualize janus particles colour coded according to states: fluid, disordered, hex, kagome
+def janus_double_states(pos,path,filename,nparticles,ndims,sigma,length,hlength,direction):
+    os.chdir(path)
+    file = open(filename,'w')
+    
+    #2D array: Only a single frame
+    if (len(pos.shape)==2):
+        
+        z,nc,nclist,r_list =cla.coord_number(nparticles,ndims,sigma,length,hlength,pos) 
+        phi6_avg,phi6=cla.abop(nparticles,ndims,6,r_list,nc)
+        
+        file.write('{}\n'.format(3*pos.shape[0]))
+        file.write('Lattice="{} 0.0 0.0 0.0 {} 0.0 0.0 0.0 {}"\n'.format(length,length,length))
+        
+        for i in range(pos.shape[0]):
+            
+            
+            #Everything set to disordered by default (whatever remains after the ifs below 
+            # will be disordered in the end)
+            col=4
+            
+            #Fluid condition
+            if (nc[i]<=2):
+                col=1
+            
+            #Hexagonal condition
+            if (nc[i]==6 and phi6[i]>0.7):
+                col=2
+                
+            #Kagome Condition
+            if (nc[i]==4 and phi6[i]>0.7):
+                col=3
+            
+    
+                
+            #Particle
+            file.write('{} {} {}\n'.format(col,pos[i,0],pos[i,1]))
+            #Two patches
+            file.write('5 {} {}\n'.format(pos[i, 0]+0.15*direction[i, 0], pos[i, 1]+0.15*direction[i, 1]))
+            file.write('5 {} {}\n'.format(pos[i, 0]-0.15*direction[i, 0], pos[i, 1]-0.15*direction[i, 1]))
+            
+            
+    #3D array: trajectory
+    if (len(pos.shape)==3):
+        for i in range(0,pos.shape[2]-100,100):
+            
+            z,nc,nclist,r_list =cla.coord_number(nparticles,ndims,sigma,length,hlength,pos[:,:,i]) 
+            phi6_avg,phi6=cla.abop(nparticles,ndims,6,r_list,nc)
+            
+            file.write('{}\n'.format(3*pos.shape[0]))
+            file.write('Lattice="{} 0.0 0.0 0.0 {} 0.0 0.0 0.0 {}"\n'.format(length,length,length))
+            
+            for j in range(pos.shape[0]):
+                
+                #Everything set to disordered by default (whatever remains after the ifs below 
+                # will be disordered in the end)
+                col=4
+                
+                #Fluid condition
+                if (nc[j]<=2):
+                    col=1
+                    
+                    
+                #Hexagonal condition
+                if (nc[j]==6 and phi6[j]>0.7):
+                    col=2
+                    
+                #Kagome Condition
+                if (nc[j]==4 and phi6[j]>0.7):
+                    col=3
+    
+                    
+                    
+                #Particle
+                file.write('{} {} {}\n'.format(col,pos[j,0,i],pos[j,1,i]))
+                #Two patches
+                file.write('5 {} {}\n'.format(pos[j,0,i]+0.15*direction[j,0,i], pos[j,1,i]+0.15*direction[j,1,i]))
+                file.write('5 {} {}\n'.format(pos[j,0,i]-0.15*direction[j,0,i], pos[j,1,i]-0.15*direction[j,1,i]))
+                
+                
+    file.close()
