@@ -1,5 +1,5 @@
 import numpy as np
-from md import pbc
+from pybdynamics.bd_sim import pbc
 import math
 
 
