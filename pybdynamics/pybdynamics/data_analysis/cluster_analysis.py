@@ -1,7 +1,7 @@
 import numpy as np
 from numba import jit, objmode
 import cmath
-from pybdynamics.bd_sim import pbc
+from pybdynamics import pbc
 
 
 # Coordination Number of a single frame

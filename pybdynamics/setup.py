@@ -14,9 +14,10 @@ setup_args = dict(
     author="Salman Fariz Navas",
     author_email="salmanfarizn@gmail.com",
     keywords=["molecular dynamics", "data analysis", "brownian dynamics"],
-    install_requires=["numpy", "numba", "math", "cmath", "os"],
+    install_requires=["numpy", "numba"],
+    url="https://github.com/SalmanFarizN/packages/tree/master/pybdynamics",
 )
 
 
-def main():
+if __name__ == "__main__":
     setuptools.setup(**setup_args)

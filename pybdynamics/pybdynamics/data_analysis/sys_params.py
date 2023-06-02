@@ -1,6 +1,6 @@
 import numpy as np
 from numba import jit, objmode
-from pybdynamics.bd_sim import pbc
+from pybdynamics import pbc
 
 
 @jit(nopython=True)

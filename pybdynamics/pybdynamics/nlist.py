@@ -1,6 +1,6 @@
 import numpy as np
 from numba import jit, prange
-from pybdynamics.bd_sim import pbc
+from pybdynamics import pbc
 
 
 # Function optimized for single core performance
