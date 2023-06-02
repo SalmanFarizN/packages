@@ -3,3 +3,8 @@
 
 #Ignore all .xyz files
 *.xyz
+
+#Ignore all .log files
+pybdynamics.egg-info/
+pybdynamics/dist
+pybdynamics/build
