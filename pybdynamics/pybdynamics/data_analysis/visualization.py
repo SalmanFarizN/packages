@@ -84,7 +84,7 @@ def ovito3d(pos, colour2, path, filename, length):
     file.close()
 
 
-# Prepare xyz of snapshots colour coded accoring to 4.6 abop and whether they are fluid or disordered
+# Prepare xyz of snapshots colour coded accoring to states: fluid, disordered, hexagonal, quadratic and chains
 def ovito2d_4states(pos, path, filename, nparticles, ndims, sigma, length, hlength):
     os.chdir(path)
 
@@ -105,22 +105,27 @@ def ovito2d_4states(pos, path, filename, nparticles, ndims, sigma, length, hleng
         )
 
         for i in range(pos.shape[0]):
-            # Fluid Condition
-            if nc[i] <= 2:
-                file.write("1 {} {}\n".format(pos[i, 0], pos[i, 1]))
+            # Chain condition
+            if phi4[i] >= 0.8 and phi6[i] >= 0.8 and nc[i] == 2:
+                file.write("5 {} {}\n".format(pos[i, 0], pos[i, 1]))
 
             # HCP Condition
-            elif (phi6[i] >= 0.7) & (phi4[i] <= 0.3):
+            elif phi6[i] >= 0.8:
                 file.write("2 {} {}\n".format(pos[i, 0], pos[i, 1]))
 
             # Quadratic Condition
-            elif (phi4[i] >= 0.7) & (phi6[i] <= 0.3):
+            elif phi4[i] >= 0.8:
                 file.write("3 {} {}\n".format(pos[i, 0], pos[i, 1]))
+
+            # Fluid Condition
+            elif nc[i] <= 2:
+                file.write("1 {} {}\n".format(pos[i, 0], pos[i, 1]))
 
             # None above then disordered
             else:
                 file.write("4 {} {}\n".format(pos[i, 0], pos[i, 1]))
 
+    # 3D array: trajectory file
     if len(pos.shape) == 3:
         for i in range(0, pos.shape[2] - 1, 100):
             z, nc, nclist, r_list = cla.coord_number(
@@ -137,17 +142,21 @@ def ovito2d_4states(pos, path, filename, nparticles, ndims, sigma, length, hleng
             )
 
             for j in range(pos.shape[0]):
-                # Fluid Condition
-                if nc[j] <= 2:
-                    file.write("1 {} {}\n".format(pos[j, 0, i], pos[j, 1, i]))
+                # Chain condition
+                if phi4[j] >= 0.8 and phi6[j] >= 0.8 and nc[j] == 2:
+                    file.write("5 {} {}\n".format(pos[j, 0, i], pos[j, 1, i]))
 
                 # HCP Condition
-                elif (phi6[j] >= 0.7) & (phi4[j] <= 0.3):
+                elif phi6[j] >= 0.8:
                     file.write("2 {} {}\n".format(pos[j, 0, i], pos[j, 1, i]))
 
                 # Quadratic Condition
-                elif (phi4[j] >= 0.7) & (phi6[j] <= 0.3):
+                elif phi4[j] >= 0.8:
                     file.write("3 {} {}\n".format(pos[j, 0, i], pos[j, 1, i]))
+
+                # Fluid Condition
+                elif nc[j] <= 2:
+                    file.write("1 {} {}\n".format(pos[j, 0, i], pos[j, 1, i]))
 
                 # None above then disordered
                 else:
