@@ -78,6 +78,7 @@ def yu_force(
                         q = -1.0
 
                     # Minimum image distance computation
+                    # Electric charges
                     rnorm_e, r_e = pbc.dist_mic(
                         shape_params[1],
                         e_pos[i, l, :],
@@ -85,6 +86,8 @@ def yu_force(
                         pbc_params[0],
                         pbc_params[1],
                     )
+
+                    # Magnetic charges
                     rnorm_m, r_m = pbc.dist_mic(
                         shape_params[1],
                         m_pos[i, l, :],
@@ -93,6 +96,7 @@ def yu_force(
                         pbc_params[1],
                     )
 
+                    # Forces due to electric charges
                     if rnorm_e < yu_params[1]:
                         f_e = (
                             q
@@ -108,6 +112,7 @@ def yu_force(
                             total_f[i, k] = total_f[i, k] + (r_e[k] / rnorm_e) * f_e
                             total_f[p, k] = total_f[p, k] - (r_e[k] / rnorm_e) * f_e
 
+                    # Forces due to magnetic charges
                     if rnorm_m < yu_params[1]:
                         f_m = (
                             q
@@ -122,6 +127,151 @@ def yu_force(
                         for k in range(shape_params[1]):
                             total_f[i, k] = total_f[i, k] + (r_m[k] / rnorm_m) * f_m
                             total_f[p, k] = total_f[p, k] - (r_m[k] / rnorm_m) * f_m
+
+    return total_f
+
+
+# Non reciprocal forces due to Yukawa potential (as described in Koegler paper)
+@jit(nopython=True)
+def yu_force_non_reciprocal(
+    pos,
+    shape_params,
+    e_pos,
+    m_pos,
+    pbc_params,
+    nc,
+    nclist,
+    yu_params,
+    lj_params,
+    split,
+    nr,
+):
+    r_e = np.zeros((shape_params[1]), dtype=np.float64)
+    r_m = np.zeros((shape_params[1]), dtype=np.float64)
+
+    total_f = np.zeros((shape_params[0], shape_params[1]), dtype=np.float64)
+
+    for i in range(shape_params[0]):
+        for j in range(1, nc[i] + 1):
+            p = nclist[i, j]
+            for l in range(2):
+                for m in range(2):
+                    if l == m:
+                        q = 1.0
+                    if l != m:
+                        q = -1.0
+
+                    # Minimum image distance computation
+                    # Electric charges
+                    rnorm_e, r_e = pbc.dist_mic(
+                        shape_params[1],
+                        e_pos[i, l, :],
+                        e_pos[p, m, :],
+                        pbc_params[0],
+                        pbc_params[1],
+                    )
+                    # Magnetic charges
+                    rnorm_m, r_m = pbc.dist_mic(
+                        shape_params[1],
+                        m_pos[i, l, :],
+                        m_pos[p, m, :],
+                        pbc_params[0],
+                        pbc_params[1],
+                    )
+
+                    # Forces due to electric charges
+                    if rnorm_e < yu_params[1]:
+                        f_e = (
+                            q
+                            * (2.5) ** 2
+                            * (lj_params[0] / lj_params[1])
+                            * -1
+                            * np.exp(-yu_params[0] * rnorm_e)
+                            * ((yu_params[0] * rnorm_e + 1) / rnorm_e**2)
+                            * (yu_params[2] / yu_params[3])
+                        )
+
+                        for k in range(shape_params[1]):
+                            # Both particles of species A
+                            if i in range(0, split) and p in range(0, split):
+                                total_f[i, k] = total_f[i, k] + (r_e[k] / rnorm_e) * f_e
+                                total_f[p, k] = total_f[p, k] - (r_e[k] / rnorm_e) * f_e
+
+                            # Both particles of species B
+                            if i in range(split, shape_params[0]) and p in range(
+                                split, shape_params[0]
+                            ):
+                                total_f[i, k] = total_f[i, k] + (r_e[k] / rnorm_e) * f_e
+                                total_f[p, k] = total_f[p, k] - (r_e[k] / rnorm_e) * f_e
+
+                            # Particle i of species A and particle p of species B
+                            if i in range(0, split) and p in range(
+                                split, shape_params[0]
+                            ):
+                                total_f[i, k] = total_f[i, k] + (
+                                    r_e[k] / rnorm_e
+                                ) * f_e * (1 + nr)
+                                total_f[p, k] = total_f[p, k] - (
+                                    r_e[k] / rnorm_e
+                                ) * f_e * (1 - nr)
+
+                            # Particle i of species B and particle p of species A
+                            if i in range(split, shape_params[0]) and p in range(
+                                0, split
+                            ):
+                                total_f[i, k] = total_f[i, k] + (
+                                    r_e[k] / rnorm_e
+                                ) * f_e * (1 - nr)
+                                total_f[p, k] = total_f[p, k] - (
+                                    r_e[k] / rnorm_e
+                                ) * f_e * (1 + nr)
+
+                    # Forces due to magnetic charges
+                    if rnorm_m < yu_params[1]:
+                        f_m = (
+                            q
+                            * (2.5) ** 2
+                            * (lj_params[0] / lj_params[1])
+                            * -1
+                            * np.exp(-yu_params[0] * rnorm_m)
+                            * ((yu_params[0] * rnorm_m + 1) / rnorm_m**2)
+                            * (yu_params[2] / yu_params[3])
+                        )
+
+                        for k in range(shape_params[1]):
+                            # Both particles of species A
+                            if i in range(0, split) and p in range(0, split):
+                                total_f[i, k] = total_f[i, k] + (r_m[k] / rnorm_m) * f_m
+                                total_f[p, k] = total_f[p, k] - (r_m[k] / rnorm_m) * f_m
+
+                            # Both particles of species B
+                            if i in range(split, shape_params[0]) and p in range(
+                                split, shape_params[0]
+                            ):
+                                total_f[i, k] = total_f[i, k] + (r_m[k] / rnorm_m) * f_m
+                                total_f[p, k] = total_f[p, k] - (r_m[k] / rnorm_m) * f_m
+
+                            # Particle i of species A and particle p of species B
+                            if i in range(0, split) and p in range(
+                                split, shape_params[0]
+                            ):
+                                total_f[i, k] = total_f[i, k] + (
+                                    r_m[k] / rnorm_m
+                                ) * f_m * (1 + nr)
+                                total_f[p, k] = total_f[p, k] - (
+                                    r_m[k] / rnorm_m
+                                ) * f_m * (1 - nr)
+
+                            # Particle i of species B and particle p of species A
+                            if i in range(split, shape_params[0]) and p in range(
+                                0, split
+                            ):
+                                total_f[i, k] = total_f[i, k] + (
+                                    r_m[k] / rnorm_m
+                                ) * f_m * (1 - nr)
+                                total_f[p, k] = total_f[p, k] - (
+                                    r_m[k] / rnorm_m
+                                ) * f_m * (1 + nr)
 
     return total_f
 
