@@ -5,7 +5,7 @@ with open("README.md") as readme_file:
 
 setup_args = dict(
     name="pybdynamics",
-    version="0.0.1",
+    version="0.0.2",
     description="Functions for BD simulations and data-analysis",
     long_description=README,
     long_description_content_type="text/markdown",
