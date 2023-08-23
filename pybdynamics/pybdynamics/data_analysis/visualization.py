@@ -165,6 +165,116 @@ def ovito2d_4states(pos, path, filename, nparticles, ndims, sigma, length, hleng
     file.close()
 
 
+# For non reciprocal systems
+# Prepare xyz of snapshots/videos colour coded accoring to 5
+# states: fluid, disordered, hexagonal, quadratic, chains and pairs (one particle of specias A and one of species B)
+def ovito2d_nrp_4states(pos, path, filename, nparticles, ndims, sigma, length, hlength):
+    os.chdir(path)
+
+    file = open(filename, "w")
+
+    # 2D array: Only a single frame
+    if len(pos.shape) == 2:
+        z, nc, nclist, r_list = cla.coord_number(
+            nparticles, ndims, sigma, length, hlength, pos
+        )
+        phi4_avg, phi4 = cla.abop(nparticles, ndims, 4, r_list, nc)
+        phi6_avg, phi6 = cla.abop(nparticles, ndims, 6, r_list, nc)
+        file.write("{}\n".format(pos.shape[0]))
+        file.write(
+            'Lattice="{} 0.0 0.0 0.0 {} 0.0 0.0 0.0 {}"\n'.format(
+                length, length, length
+            )
+        )
+
+        for i in range(pos.shape[0]):
+            # Chain condition
+            if phi4[i] >= 0.8 and phi6[i] >= 0.8 and nc[i] == 2:
+                file.write("5 {} {}\n".format(pos[i, 0], pos[i, 1]))
+
+            # HCP Condition
+            elif phi6[i] >= 0.8:
+                file.write("2 {} {}\n".format(pos[i, 0], pos[i, 1]))
+
+            # Quadratic Condition
+            elif phi4[i] >= 0.8:
+                file.write("3 {} {}\n".format(pos[i, 0], pos[i, 1]))
+
+            elif nc[i] <= 2:
+                # First check if particle has only one neighbour
+                if nc[i] == 1:
+                    # Pair state
+                    # Check if the species of particle i and its neighbour
+                    # are different
+                    if i < (nparticles / 2) and nclist[i, 1] >= (nparticles / 2):
+                        file.write("6 {} {}\n".format(pos[i, 0], pos[i, 1]))
+                    elif i >= (nparticles / 2) and nclist[i, 1] < (nparticles / 2):
+                        file.write("6 {} {}\n".format(pos[i, 0], pos[i, 1]))
+                    else:
+                        # Fluid Condition
+                        file.write("1 {} {}\n".format(pos[i, 0], pos[i, 1]))
+                else:
+                    # Fluid Condition
+                    file.write("1 {} {}\n".format(pos[i, 0], pos[i, 1]))
+
+            # None above then disordered
+            else:
+                file.write("4 {} {}\n".format(pos[i, 0], pos[i, 1]))
+
+    # 3D array: trajectory file
+    if len(pos.shape) == 3:
+        for i in range(0, pos.shape[2] - 1, 1):
+            z, nc, nclist, r_list = cla.coord_number(
+                nparticles, ndims, sigma, length, hlength, pos[:, :, i]
+            )
+            phi4_avg, phi4 = cla.abop(nparticles, ndims, 4, r_list, nc)
+            phi6_avg, phi6 = cla.abop(nparticles, ndims, 6, r_list, nc)
+
+            file.write("{}\n".format(pos.shape[0]))
+            file.write(
+                'Lattice="{} 0.0 0.0 0.0 {} 0.0 0.0 0.0 {}"\n'.format(
+                    length, length, length
+                )
+            )
+
+            for j in range(pos.shape[0]):
+                # Chain condition
+                if phi4[j] >= 0.8 and phi6[j] >= 0.8 and nc[j] == 2:
+                    file.write("5 {} {}\n".format(pos[j, 0, i], pos[j, 1, i]))
+
+                # HCP Condition
+                elif phi6[j] >= 0.8:
+                    file.write("2 {} {}\n".format(pos[j, 0, i], pos[j, 1, i]))
+
+                # Quadratic Condition
+                elif phi4[j] >= 0.8:
+                    file.write("3 {} {}\n".format(pos[j, 0, i], pos[j, 1, i]))
+
+                # Fluid Condition
+                elif nc[j] <= 2:
+                    # First check if particle has only one neighbour
+                    if nc[j] == 1:
+                        # Pair state
+                        # Check if the species of particle j and its neighbour
+                        # are different
+                        if j < (nparticles / 2) and nclist[j, 1] >= (nparticles / 2):
+                            file.write("6 {} {}\n".format(pos[j, 0, i], pos[j, 1, i]))
+                        elif j >= (nparticles / 2) and nclist[j, 1] < (nparticles / 2):
+                            file.write("6 {} {}\n".format(pos[j, 0, i], pos[j, 1, i]))
+                        else:
+                            # Fluid Condition
+                            file.write("1 {} {}\n".format(pos[j, 0, i], pos[j, 1, i]))
+                    else:
+                        # Fluid Condition
+                        file.write("1 {} {}\n".format(pos[j, 0, i], pos[j, 1, i]))
+
+                # None above then disordered
+                else:
+                    file.write("4 {} {}\n".format(pos[j, 0, i], pos[j, 1, i]))
+
+    file.close()
+
+
 # Function to colour code particles according to abop phi_4 and phi_6
 def ovito2d_abop(pos, path, filename, nparticles, ndims, sigma, length, hlength):
     os.chdir(path)
