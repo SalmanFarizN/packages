@@ -49,3 +49,15 @@ def dist_mic(ndims, pos1, pos2, length, hlength):
     rnorm = np.sqrt(rnorm)
 
     return (rnorm, r)
+
+
+# Distance between two particles without minimum image criteria
+@jit(nopython=True)
+def dist(ndims, pos1, pos2):
+    r = pos1 - pos2
+    rnorm = 0
+    for k in range(ndims):
+        rnorm = rnorm + r[k] ** 2
+    rnorm = np.sqrt(rnorm)
+
+    return (rnorm, r)
