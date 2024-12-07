@@ -5,8 +5,8 @@ with open("README.md") as readme_file:
 
 setup_args = dict(
     name="pybdynamics",
-    version="0.0.2",
-    description="Functions for BD simulations and data-analysis",
+    version="0.0.3",
+    description="Python package for simulation and data analysis of interacting colloidal particle systems (Brownian Dynamics)",
     long_description=README,
     long_description_content_type="text/markdown",
     license="MIT",
@@ -15,7 +15,7 @@ setup_args = dict(
     author_email="salmanfarizn@gmail.com",
     keywords=["molecular dynamics", "data analysis", "brownian dynamics"],
     install_requires=["numpy", "numba"],
-    url="https://github.com/SalmanFarizN/packages/tree/master/pybdynamics",
+    url="https://github.com/SalmanFarizN/pybdynamics/tree/master",
 )
 
 
