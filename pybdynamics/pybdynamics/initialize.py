@@ -90,3 +90,13 @@ def posini2(shape_params, pbc_params, diam):
         pos[i, 1] = yax
 
     return pos
+
+
+# Funciton to initialise the position of 2 particles such that they are in contact
+# and are aligned along the x axis for the non-rp multidirectional system
+def active_pair(sigma):
+    pos = np.zeros((2, 2), dtype=np.float64)
+    xax = 4.0
+    yax = 5.0
+    pos = np.array([[xax, yax], [xax + sigma, yax]])
+    return pos
